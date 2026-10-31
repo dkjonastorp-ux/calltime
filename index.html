@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="da">
+<head>
+<meta charset="utf-8">
+<title>CallTime</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CallTime">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<style>
+:root{--bg:#f6f5f2;--card:#fff;--tx:#1d1d1b;--mut:#6b6a66;--ac:#1f5eff;--acx:#fff;--bd:#e3e1db;--warn:#b3261e;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#141414;--card:#1f1f1e;--tx:#f0efeb;--mut:#a09f9a;--ac:#6c93ff;--acx:#10131c;--bd:#343431;--warn:#ff8a80;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#141414;--card:#1f1f1e;--tx:#f0efeb;--mut:#a09f9a;--ac:#6c93ff;--acx:#10131c;--bd:#343431;--warn:#ff8a80;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100vh}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:22px;margin:0}
+h2{font-size:17px;margin:0 0 8px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.badge{font-size:12px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>label{flex:1 1 130px}
+label{display:block;font-size:13px;color:var(--mut);margin-bottom:8px}
+input,select{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:9px 10px;margin-top:3px;min-height:42px}
+input[type=checkbox]{width:auto;min-height:0;margin:0 8px 0 0;vertical-align:middle}
+.chk{display:flex;align-items:center;color:var(--tx);font-size:15px}
+button{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:8px;padding:9px 14px;min-height:42px;cursor:pointer}
+button.p{background:var(--ac);color:var(--acx);border-color:var(--ac);font-weight:600}
+button.d{color:var(--warn)}
+button.l{border:none;background:none;color:var(--ac);padding:6px 0;min-height:0}
+.sum{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.big{font-size:24px;font-weight:700}
+.mut{color:var(--mut);font-size:13px}
+.line{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px dashed var(--bd);font-size:14px}
+.line:last-child{border:none}
+.dayhead{cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.eq{display:grid;grid-template-columns:1fr 90px 42px;gap:6px;margin-bottom:6px}
+.eq input{margin:0}
+.note{font-size:12px;color:var(--mut);margin-top:16px}
+/* ---- design v2: Apple / DJI ---- */
+:root{--bg:#f2f2f7;--card:#fff;--tx:#1c1c1e;--mut:#8e8e93;--ac:#0a84ff;--acx:#fff;--bd:rgba(0,0,0,.08);--fld:#f2f2f7;--warn:#ff453a}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--card:#141416;--tx:#f5f5f7;--mut:#8e8e93;--ac:#0a84ff;--acx:#fff;--bd:rgba(255,255,255,.08);--fld:#1f1f22;--warn:#ff453a}}
+:root[data-theme="dark"]{--bg:#000;--card:#141416;--tx:#f5f5f7;--mut:#8e8e93;--ac:#0a84ff;--acx:#fff;--bd:rgba(255,255,255,.08);--fld:#1f1f22;--warn:#ff453a}
+html{background:var(--bg)}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+main{padding:24px 16px 40px}
+h1{font-size:34px;font-weight:700;letter-spacing:-.02em}
+h2{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:0 0 10px}
+.top{margin-bottom:20px;align-items:flex-end}
+.badge{font-size:11px;letter-spacing:.04em;color:var(--mut)}
+.card{border-radius:20px;padding:16px;margin-bottom:12px;border:1px solid var(--bd)}
+label{font-size:11px;font-weight:500;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.chk{text-transform:none;letter-spacing:0;font-size:15px;font-weight:400;color:var(--tx)}
+input,select{background:var(--fld);border:1px solid transparent;border-radius:12px;padding:10px 12px;font-size:16px;color:var(--tx);margin-top:6px;outline:none;transition:border-color .15s}
+input:focus,select:focus{border-color:var(--ac)}
+input[type=checkbox]{accent-color:var(--ac)}
+button{border:none;background:var(--fld);border-radius:999px;padding:10px 18px;font-weight:500;transition:opacity .15s,transform .1s}
+button:active{transform:scale(.98);opacity:.85}
+button.p{background:var(--ac);color:var(--acx);font-weight:600}
+button.d{color:var(--warn);background:transparent;padding-left:0}
+button.l{background:none;color:var(--ac);padding:6px 0;border-radius:0}
+.big{font-size:30px;font-weight:600;letter-spacing:-.02em}
+.sum>span:first-child{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+.dayhead strong{font-weight:600}
+.mut{color:var(--mut);font-size:13px}
+.line{border-bottom:1px solid var(--bd);padding:8px 0}
+.line:last-child{border-bottom:none}
+label.chip{flex:1 1 40%;background:var(--fld);border:1px solid transparent;border-radius:14px;padding:13px 14px;margin:0;transition:border-color .15s,background .15s}
+label.chip:has(input:checked){border-color:var(--ac);background:color-mix(in srgb,var(--ac) 16%,var(--fld))}
+label.chip input{width:18px;height:18px}
+textarea{border-radius:12px!important;border:1px solid var(--bd)!important;padding:12px!important;line-height:1.5!important}
+.note{font-size:11px;line-height:1.5;margin-top:28px}
+/* ---- design v3: App Store ---- */
+:root{--bg:#f2f2f7;--card:#fff;--fld:#f2f2f7;--pill:rgba(120,120,128,.16);--bd:rgba(60,60,67,.12)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--card:#1c1c1e;--fld:#2c2c2e;--pill:rgba(120,120,128,.32);--bd:rgba(255,255,255,.07)}}
+:root[data-theme="dark"]{--bg:#000;--card:#1c1c1e;--fld:#2c2c2e;--pill:rgba(120,120,128,.32);--bd:rgba(255,255,255,.07)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin-bottom:2px}
+.top{margin-bottom:18px}
+h1{font-size:34px;font-weight:800;letter-spacing:-.03em}
+h2{font-size:20px;font-weight:700;letter-spacing:-.01em;text-transform:none;color:var(--tx);margin:0 0 10px}
+.card{border-radius:22px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+button,button.p{background:var(--pill);color:var(--ac);font-size:14px;font-weight:700;padding:6px 16px;min-height:32px;border-radius:999px}
+button.d{background:none;color:var(--warn);padding:6px 0;font-weight:600}
+button.l{background:none;padding:6px 0;font-weight:500;font-size:16px}
+button[style*="width:100%"]{width:auto!important}
+.card:has(>button[data-act="newjob"]),.card:has(>button[data-act="newday"]){background:none;border:none;box-shadow:none;padding:0;margin-bottom:10px;display:flex;justify-content:flex-end}
+input[data-sel]{-webkit-appearance:none;appearance:none;border-radius:50%;border:1.5px solid var(--mut);background:transparent;margin:0!important;width:24px!important;height:24px!important;position:relative}
+input[data-sel]:checked{background:var(--ac);border-color:var(--ac)}
+input[data-sel]:checked::after{content:"";position:absolute;left:7px;top:3px;width:6px;height:11px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+/* fix: felter må ikke gå ud over kortet */
+.row>label{min-width:0;flex:1 1 90px}
+.row>label:has(input[type=date]){flex-basis:100%}
+input,select{min-width:0;max-width:100%;display:block}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;min-height:44px;text-align:left}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:left}
+.card{overflow:hidden}
+/* fix: udstyrsfelter og afkrydsning */
+input[type=checkbox]{padding:0;border:none;border-radius:0;background:none;display:inline-block;min-height:0;flex:none}
+input[type=checkbox]:not([data-sel]){margin:0 10px 0 0;width:18px;height:18px}
+label.chip{display:flex;align-items:center;flex:1 1 calc(50% - 10px);min-width:0;overflow-wrap:anywhere}
+input[type=checkbox][data-sel]{-webkit-appearance:none;appearance:none;display:block;flex:none;width:24px;height:24px;margin:0;border:1.5px solid var(--mut);border-radius:50%;background:transparent}
+input[type=checkbox][data-sel]:checked{background:var(--ac);border-color:var(--ac)}
+.alert{display:flex;align-items:center;gap:12px;background:#ff453a;color:#fff;border-radius:18px;padding:12px 16px;margin-bottom:12px;font-weight:700;cursor:pointer}
+.alert small{display:block;font-weight:400;opacity:.9;font-size:13px}
+.alert .clk{margin-left:auto;font-size:30px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+html.live body{background:linear-gradient(180deg,rgba(255,69,58,.24),rgba(255,69,58,0) 380px) no-repeat,var(--bg)}
+.alert .dot{flex:none;width:10px;height:10px;border-radius:50%;background:#fff;animation:pl 1.4s ease-in-out infinite}
+@keyframes pl{50%{opacity:.25}}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:0 0 14px}
+#back button{font-size:15px;padding:0;margin:0 0 10px}
+.bar button.l{font-size:15px}
+button[disabled]{opacity:.4}
+#out{margin-bottom:10px}
+</style>
+</head>
+<body>
+<main>
+<div id="alert"></div><div id="back"></div><div class="eyebrow" id="eyebrow"></div><div class="top"><h1 id="title">CallTime</h1><span class="badge" id="badge"></span></div>
+<div id="app"></div>
+<p class="note">Beregningen følger reklamefilmsoverenskomsten 2024–26 og fiktionsoverenskomsten 2025–27. Transporttid regnes for dage uden overnatning. Den medregner ikke rejsetid, udstationering, forberedelsesdage, rabatordninger, pension, feriepenge eller diæter. Tjek altid mod din kontrakt og FAF.</p>
+</main>
+<script>
+var KEY='filmdage-v1';
+var S={jobs:[],updated:0};
+var view=null, openDay=null, armed=null;
+var jobEdit=false,expMsg='',expShow=false;
+var sel={}, outText=null, outMsg='', copied=false, delOpen=false;
+var docRef=null, timer=null, writing=false;
+var AG={reklame:'Reklamefilm',fiktion:'Fiktion'};
+var GEAR=['Steadicam','Cyclo Lite','Segway','Rickshaw'];
+var fmt=new Intl.NumberFormat('da-DK',{style:'currency',currency:'DKK',maximumFractionDigits:0});
+var fmt2=new Intl.NumberFormat('da-DK',{maximumFractionDigits:2});
+function p2(n){return (n<10?'0':'')+n;}
+function hm(m){return p2(Math.floor(m/60))+':'+p2(m%60);}
+function ld(t){return t.getFullYear()+'-'+p2(t.getMonth()+1)+'-'+p2(t.getDate());}
+function flag(n){
+  try{document.title=(n?'● ':'')+'CallTime';}catch(e){}
+  try{var l=document.querySelector('link[rel=icon]');if(!l){l=document.createElement('link');l.rel='icon';document.head.appendChild(l);}
+    l.href='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" fill="#1c1c1e"/><circle cx="32" cy="34" r="15" fill="none" stroke="#fff" stroke-width="5"/>'+(n?'<circle cx="50" cy="14" r="12" fill="#ff453a"/>':'')+'</svg>');}catch(e){}
+  try{if(navigator.setAppBadge){var p=n?navigator.setAppBadge(n):navigator.clearAppBadge();if(p&&p.catch)p.catch(function(){});}}catch(e){}
+}
+function uid(){return Math.random().toString(36).slice(2,9);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+
+function loadLocal(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o&&o.jobs)S=o;}}catch(e){}}
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
+function setBadge(t){document.getElementById('badge').textContent=t;}
+
+function mutate(fn){fn();S.updated=Date.now();saveLocal();clearTimeout(timer);timer=setTimeout(push,500);
+  render();}
+function openDays(){var od=[];S.jobs.forEach(function(jj){jj.days.forEach(function(dd){if(dd.start&&!dd.end)od.push({j:jj,d:dd});});});return od;}
+function elapsed(d){var st=new Date((d.date||ld(new Date()))+'T'+d.start+':00'),m=Math.max(0,Math.floor((Date.now()-st)/60000));return Math.floor(m/60)+':'+p2(m%60);}
+function drawAlert(){
+  var od=openDays(),al=document.getElementById('alert');
+  al.innerHTML=od.map(function(o){return '<div class="alert" data-act="gotoopen" data-job="'+o.j.id+'" data-id="'+o.d.id+'"><span class="dot"></span><div>Aktiv dag<small>'+esc(o.j.name||'Uden navn')+' · startet '+esc(o.d.start)+'</small></div><span class="clk">'+elapsed(o.d)+'</span></div>';}).join('');
+  document.documentElement.classList.toggle('live',od.length>0);
+  flag(od.length);
+}
+setInterval(drawAlert,20000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)drawAlert();});
+function push(){
+  if(!docRef)return;
+  if(writing){timer=setTimeout(push,300);return;}
+  writing=true;
+  docRef.set({json:JSON.stringify(S),updated:S.updated}).then(function(){setBadge('Synkroniseret');}).catch(function(){setBadge('Synk-fejl – gemt på denne enhed');}).then(function(){writing=false;});
+}
+var auth=null,user,authErr='',authMsg='',unsub=null,impOpen=false,impMsg='';
+function initSync(){
+  if(!(window.firebase&&window.FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey)){setBadge('Gemmes kun på denne enhed');return;}
+  try{firebase.initializeApp(FIREBASE_CONFIG);}catch(e){setBadge('Firebase-fejl');return;}
+  var db=firebase.firestore();
+  try{db.enablePersistence({synchronizeTabs:true}).catch(function(){});}catch(e){}
+  auth=firebase.auth();
+  auth.onAuthStateChanged(function(u){
+    user=u||null;if(unsub){unsub();unsub=null;}docRef=null;
+    if(!u){setBadge('Ikke logget ind');render();return;}
+    docRef=db.doc('users/'+u.uid+'/data/state');
+    unsub=docRef.onSnapshot(function(snap){
+      if(snap.exists){
+        var x=snap.data()||{};
+        if((x.updated||0)>S.updated){try{S=JSON.parse(x.json);saveLocal();render();}catch(e){}}
+        else if((x.updated||0)<S.updated){push();}
+      }else if(S.jobs.length){push();}
+      setBadge(snap.metadata&&snap.metadata.fromCache?'Offline – synker senere':'Synkroniseret');
+    },function(){setBadge('Synk-fejl – gemt på denne enhed');});
+    render();
+  });
+}
+function authError(e){
+  var c=(e&&e.code)||'';
+  return {'auth/invalid-email':'Ugyldig e-mail.','auth/missing-password':'Skriv en adgangskode.','auth/weak-password':'Adgangskoden skal være mindst 6 tegn.','auth/email-already-in-use':'Der findes allerede en konto med den e-mail. Log ind i stedet.','auth/invalid-credential':'Forkert e-mail eller adgangskode.','auth/wrong-password':'Forkert e-mail eller adgangskode.','auth/user-not-found':'Forkert e-mail eller adgangskode.','auth/too-many-requests':'For mange forsøg. Vent lidt og prøv igen.','auth/network-request-failed':'Ingen forbindelse til nettet.'}[c]||('Fejl: '+(e&&e.message||c));
+}
+function loginView(){
+  return '<div class="card"><h2>Log ind</h2><div class="mut" style="margin-bottom:12px">Log ind for at synkronisere dine jobs mellem iPhone og Mac.</div>'
+    +'<label>E-mail<input id="le" type="email" autocomplete="username" autocapitalize="off" inputmode="email"></label>'
+    +'<label>Adgangskode<input id="lp" type="password" autocomplete="current-password"></label>'
+    +(authErr?'<div style="color:var(--warn);margin:4px 0 10px">'+esc(authErr)+'</div>':'')
+    +(authMsg?'<div class="mut" style="margin:4px 0 10px">'+esc(authMsg)+'</div>':'')
+    +'<div class="row" style="margin-top:6px;justify-content:space-between"><button class="p" data-act="login">Log ind</button><button data-act="signup">Opret konto</button></div>'
+    +'<div style="margin-top:10px"><button class="l" data-act="resetpw" style="font-size:14px">Glemt adgangskode?</button></div></div>';
+}
+function isStandalone(){try{return navigator.standalone===true||matchMedia('(display-mode: standalone)').matches;}catch(e){return false;}}
+
+/* ---------- beregning ---------- */
+function mins(t){var p=t.split(':');return (+p[0])*60+(+p[1]);}
+function qh(h){return Math.ceil(h*4-1e-9)/4;}
+function isoAdd(ds,n){var t=new Date(ds+'T12:00:00');t.setDate(t.getDate()+n);return t.toISOString().slice(0,10);}
+function easter(y){var a=y%19,b=Math.floor(y/100),c=y%100,dd=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-dd-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mo=Math.floor((h+l-7*m+114)/31),da=((h+l-7*m+114)%31)+1;return y+'-'+(mo<10?'0':'')+mo+'-'+(da<10?'0':'')+da;}
+function isOff(ds){
+  var dt=new Date(ds+'T12:00:00'),w=dt.getDay();
+  if(w===0||w===6)return true;
+  var md=ds.slice(5);if(md==='01-01'||md==='12-25'||md==='12-26')return true;
+  var e=easter(dt.getFullYear());
+  return [-3,-2,0,1,39,49,50].some(function(n){return isoAdd(e,n)===ds;});
+}
+function wkRate(job,d){
+  if(!d.date||!isOff(d.date))return 0;
+  var nb=[isoAdd(d.date,-1),isoAdd(d.date,1)];
+  var two=job.days.some(function(x){return x!==d&&x.date&&nb.indexOf(x.date)>=0&&isOff(x.date);});
+  return two?100:75;
+}
+function calc(job,d){
+  var L=[];
+  if(!d.start||!d.end)return {L:L,tot:0,H:0,eq:0};
+  var s=mins(d.start),e=mins(d.end);if(e<=s)e+=1440;
+  var H=qh(Math.max(0,(e-s-(job.agr==='fiktion'?30:0))/60));
+  var fik=job.agr==='fiktion';
+  var rate=+job.rate||0;if(fik&&job.single)rate*=1.1;
+  var hr=rate/8,wk=wkRate(job,d);
+  var T=qh(Math.max(0,+d.tr||0)),Tp=0;
+  if(!fik&&T>0){var fill=Math.min(T,Math.max(0,10-H));H+=fill;Tp=T-fill;}
+  function add(t,a,q){if(a>0.004)L.push([t,a,q==null?1:q]);}
+  function ov(a,b){return Math.max(0,Math.min(H,b)-a);}
+  var ev=0,ni=0,fo=0;
+  for(var t=s;t<e;t+=15){var c=t%1440;if(c>=1080)ev++;if(c<360)ni++;if(c>=1140||c<360)fo++;}
+  var i,b,bands;
+  if(!fik){
+    add('Dagsløn (8 timer)',rate);
+    if(job.grp==='5'){
+      add('Overtid 9.–13. time (timeløn + 200 kr)',ov(8,13)*(hr+200),ov(8,13));
+      add('Overtid fra 14. time (timeløn + 350 kr)',ov(13,99)*(hr+350),ov(13,99));
+    }else{
+      bands=[[8,10,0.25,'9.–10. time (+25 %)'],[10,12,1,'11.–12. time (+100 %)'],[12,13,1.5,'13. time (+150 %)'],[13,99,2,'14. time og derover (+200 %)']];
+      for(i=0;i<bands.length;i++){b=bands[i];add('Overtid '+b[3],ov(b[0],b[1])*hr*(1+b[2]),ov(b[0],b[1]));}
+    }
+    if(wk)add('Weekend-/helligdagstillæg '+wk+' %',Math.ceil(H)*hr*wk/100,Math.ceil(H));
+    if(d.gene!==false){
+      if(ev)add('Genetillæg kl. 18–24',100);
+      if(ni)add('Genetillæg kl. 24–06',200);
+    }
+  }else{
+    var bh=Math.min(Math.max(H,4),8);
+    if(wk){
+      add('Weekend-/helligdagsløn (min. 4 t)',bh*hr,bh);
+      add('Weekend-/helligdagstillæg '+wk+' %',Math.max(H,4)*hr*wk/100,Math.max(H,4));
+    }else add('Dagsløn (8 timer)'+(job.single?' inkl. 10 % enkeltdagstillæg':''),rate);
+    bands=((d.unv===true||d.unv==='u')&&!wk)?[[8,9,0.75,'1. time (+75 %, uvarslet)'],[9,10,1,'2. time (+100 %, uvarslet)'],[10,99,1.35,'3. time og derover (+135 %)']]
+      :[[8,9,0.5,'1. time (+50 %)'],[9,10,0.6,'2. time (+60 %)'],[10,99,1.35,'3. time og derover (+135 %)']];
+    for(i=0;i<bands.length;i++){b=bands[i];add('Overarbejde '+b[3],ov(b[0],b[1])*hr*(1+b[2]),ov(b[0],b[1]));}
+    if(!wk&&fo&&d.gene!==false)add('Forskudt arbejdstid kl. 19–06',fo/4*110,fo/4);
+  }
+  if(fik){if(T>0)add('Transporttid over 35 km (normaltimeløn)',T*hr,T);}
+  else if(Tp>0){
+    add('Transporttid efter 10. time (+75 %)',Tp*hr*1.75,Tp);
+    if(wk)add('Weekend-/helligdagstillæg på transport '+wk+' %',Tp*hr*wk/100,Tp);
+  }
+  var tot=0;for(i=0;i<L.length;i++)tot+=L[i][1];
+  var eq=0;
+  return {L:L,tot:tot,H:H,eq:eq};
+}
+function jobTotals(job){var a=0,b=0;job.days.forEach(function(d){var r=calc(job,d);a+=r.tot;b+=r.eq;});return {pay:a,eq:b};}
+
+function buildText(job,days){
+  var out=[],tot=0,fik=job.agr==='fiktion';
+  days.slice().sort(function(a,b){return (a.date||'').localeCompare(b.date||'');}).forEach(function(d){
+    var r=calc(job,d);tot+=r.tot;
+    out.push('');
+    var dt='Dato mangler';if(d.date){var dd=new Date(d.date+'T12:00:00'),wd=dd.toLocaleDateString('da-DK',{weekday:'short'}).replace('.','');dt=wd.charAt(0).toUpperCase()+wd.slice(1)+' '+dd.getDate()+'/'+(dd.getMonth()+1);}
+    out.push(dt+' · '+d.start+'–'+d.end+' · '+fmt2.format(r.H)+' timer');
+    if(+d.tr)out.push('Transporttid: '+fmt2.format(+d.tr)+' timer');
+    if(d.gear&&d.gear.length)out.push('Udstyr: '+d.gear.join(', '));
+    r.L.forEach(function(x){out.push('  '+fmt2.format(x[2])+'x '+x[0]+': '+fmt.format(x[1]));});
+    out.push('  Løn for dagen: '+fmt.format(r.tot));
+  });
+  var gc=GEAR.map(function(g){var n=days.filter(function(d){return d.gear&&d.gear.indexOf(g)>=0;}).length;return n?g+': '+n+(n===1?' dag':' dage'):null;}).filter(Boolean);
+  if(gc.length){out.push('');out.push('Udstyr brugt:');gc.forEach(function(x){out.push('  '+x);});}
+  out.push('');
+  out.push('I alt ('+days.length+(days.length===1?' dag':' dage')+'): '+fmt.format(tot));
+  return out.join('\n').replace(/^\n+/,'');
+}
+function copyNow(text){
+  var done=function(){copied=true;render();setTimeout(function(){copied=false;render();},2000);};
+  var fail=function(){outText=text;outMsg='Markér og kopiér teksten.';render();};
+  var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta);ta.focus();ta.select();try{ta.setSelectionRange(0,text.length);}catch(e){}
+  var ok=false;try{ok=document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+  if(ok)done();
+  else if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(text).then(done,fail);
+  else fail();
+}
+function doCopy(){
+  var ta=document.getElementById('out'),ok=false;
+  if(ta){ta.focus();ta.select();try{ok=document.execCommand('copy');}catch(e){}}
+  var fin=function(k){outMsg=k?'Kopieret – sæt ind i Dinero.':'Teksten er markeret. Kopiér den manuelt.';var m=document.getElementById('outmsg');if(m)m.textContent=outMsg;};
+  if(ok)fin(true);
+  else if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(outText).then(function(){fin(true);},function(){fin(false);});}
+  else fin(false);
+}
+/* ---------- visning ---------- */
+function dayLabel(d){
+  if(!d.date)return 'Ny dag';
+  var dt=new Date(d.date+'T12:00:00');
+  return dt.toLocaleDateString('da-DK',{weekday:'short',day:'numeric',month:'short'});
+}
+function tsel(f,id,val){
+  var hh=val?val.slice(0,2):'',mm=val?val.slice(3,5):'',i,o,h='<div style="display:flex;gap:6px"><select data-t="h" data-f="'+f+'" data-id="'+id+'">';
+  if(!val)h+='<option value="" selected>--</option>';
+  for(i=0;i<24;i++){o=p2(i);h+='<option value="'+o+'"'+(o===hh?' selected':'')+'>'+o+'</option>';}
+  h+='</select><select data-t="m" data-f="'+f+'" data-id="'+id+'">';
+  if(!val)h+='<option value="" selected>--</option>';
+  var ms=[];for(i=0;i<60;i+=5)ms.push(p2(i));if(mm&&ms.indexOf(mm)<0){ms.push(mm);ms.sort();}
+  ms.forEach(function(o){h+='<option value="'+o+'"'+(o===mm?' selected':'')+'>'+o+'</option>';});
+  return h+'</select></div>';
+}
+function listView(){
+  var h='<div class="card"><button class="p" data-act="newjob" style="width:100%">+ Nyt job</button></div>';
+  if(!S.jobs.length)h+='<p class="mut">Ingen jobs endnu. Opret dit første job.</p>';
+  S.jobs.forEach(function(j){
+    var t=jobTotals(j);
+    h+='<div class="card dayhead" data-act="openjob" data-id="'+j.id+'"><div><strong>'+esc(j.name||'Uden navn')+'</strong><div class="mut">'+AG[j.agr]+' · '+j.days.length+' dage</div></div></div>';
+  });
+  h+='<div style="margin-top:28px"><button class="l" data-act="export" style="font-size:14px">'+(expMsg||'Eksportér alle data')+'</button></div>';
+  h+='<div><button class="l" data-act="impopen" style="font-size:14px">Importér data</button></div>';
+  if(impOpen)h+='<div class="card"><div class="mut" style="margin-bottom:8px">Indsæt teksten fra “Eksportér alle data”. Jobs, du allerede har, bliver ikke overskrevet.</div><textarea id="imp" rows="5" style="width:100%;font:12px ui-monospace,Menlo,monospace;background:var(--fld);color:var(--tx)"></textarea>'+(impMsg?'<div class="mut">'+esc(impMsg)+'</div>':'')+'<div class="row" style="margin-top:8px"><button class="p" data-act="doimport">Importér</button><button data-act="impclose">Luk</button></div></div>';
+  try{if(isStandalone()&&navigator.setAppBadge&&window.Notification&&Notification.permission==='default')h+='<div><button class="l" data-act="badgeon" style="font-size:14px">Vis rødt badge på app-ikonet ved aktiv dag</button></div>';}catch(e){}
+  if(user)h+='<div class="mut" style="margin-top:14px">Logget ind som '+esc(user.email)+' · <button class="l" data-act="logout" style="font-size:13px">Log ud</button></div>';
+  if(expShow)h+='<textarea id="exp" readonly rows="6" style="width:100%;font:12px ui-monospace,Menlo,monospace;background:var(--fld);color:var(--tx)">'+esc(JSON.stringify(S))+'</textarea><div class="mut">Markér al teksten og kopiér den.</div>';
+  return h;
+}
+function dayView(job,d){
+  var r=calc(job,d),fik=job.agr==='fiktion';
+  var gl=((+d.tr)?' · transport '+fmt2.format(+d.tr)+' t':'')+((d.gear&&d.gear.length)?' · '+d.gear.join(', '):'');
+  var h='<div class="card"><div style="display:flex;align-items:center;gap:10px"><input type="checkbox" data-sel="'+d.id+'"'+(sel[d.id]?' checked':'')+' style="margin:0;width:22px;height:22px;flex:none"><div class="dayhead" style="flex:1" data-act="openday" data-id="'+d.id+'"><div><strong>'+esc(dayLabel(d))+'</strong>'+(d.note?'<div>'+esc(d.note)+'</div>':'')+'<div class="mut">'+(d.end?esc(d.start||'')+'–'+esc(d.end)+' · '+fmt2.format(r.H)+' t':'<span style="color:var(--warn)">Start '+esc(d.start||'')+' · ikke afsluttet</span>')+esc(gl)+'</div></div><strong>'+fmt.format(r.tot)+'</strong></div></div>';
+  if(openDay===d.id){
+    h+='<div style="margin-top:12px"><div class="row">'
+      +'<label style="flex-basis:100%">Kommentar<input data-d="note" data-id="'+d.id+'" maxlength="80" placeholder="Kort titel eller note til dagen" value="'+esc(d.note)+'"></label>'
+      +'<label>Dato<input type="date" data-d="date" data-id="'+d.id+'" value="'+esc(d.date)+'"></label>'
+      +'<label>Start'+tsel('start',d.id,d.start)+'</label>'
+      +'<label>Slut'+tsel('end',d.id,d.end)+'</label></div>'
+      ;
+    h+='<div class="mut" style="margin:-2px 0 10px">'+(d.end?'':'Slut er tom, indtil du vælger en tid. ')+'<button class="l" data-act="endnow" data-id="'+d.id+'" style="font-size:13px">Sæt slut til nu</button></div>';
+    h+='<label>Transporttid (timer)<input type="number" inputmode="decimal" step="0.25" min="0" placeholder="0" data-d="tr" data-id="'+d.id+'" value="'+esc(d.tr)+'"></label><div class="mut" style="margin:-2px 0 10px">'+(fik?'Kun tiden ud over 35 km afregnes (normaltimeløn, tæller ikke som arbejdstid).':'Kun ved over 35 km. Op til 10 timer tæller som arbejdstid, resten får +75 %.')+'</div>';
+    h+='<label class="chk" style="margin:0 0 12px"><input type="checkbox" data-d="gene" data-id="'+d.id+'"'+(d.gene!==false?' checked':'')+'>'+(fik?'Forskudt arbejdstid (kl. 19–06)':'Genetillæg (kl. 18–06)')+'</label>';
+    if(fik){var uu=(d.unv===true||d.unv==='u');h+='<label>Overarbejde<select data-d="unv" data-id="'+d.id+'"><option value="v"'+(uu?'':' selected')+'>Varslet</option><option value="u"'+(uu?' selected':'')+'>Uvarslet</option></select></label>';}
+    h+='<h2 style="margin-top:12px">Udstyr brugt</h2><div class="row">'+GEAR.map(function(g){return '<label class="chk chip"><input type="checkbox" data-g="'+g+'" data-id="'+d.id+'"'+((d.gear||[]).indexOf(g)>=0?' checked':'')+'>'+g+'</label>';}).join('')+'</div>';
+    h+='<h2 style="margin-top:12px">Udregning</h2>';
+    r.L.forEach(function(x){h+='<div class="line"><span>'+fmt2.format(x[2])+'x '+esc(x[0])+'</span><span>'+fmt.format(x[1])+'</span></div>';});
+    h+='<div class="line"><strong>Løn for dagen</strong><strong>'+fmt.format(r.tot)+'</strong></div>';
+    if(d.gear&&d.gear.length)h+='<div class="line"><span>Udstyr</span><span>'+esc(d.gear.join(', '))+'</span></div>';
+    h+='<div style="margin-top:10px"><button class="d" data-act="delday" data-id="'+d.id+'">'+(armed==='d'+d.id?'Tryk igen for at slette':'Slet dag')+'</button></div></div>';
+  }
+  return h+'</div>';
+}
+function jobView(job){
+  var t=jobTotals(job),fik=job.agr==='fiktion';
+  var h='';
+  if(jobEdit){h+='<div class="card"><label>Jobnavn<input data-j="name" value="'+esc(job.name)+'"></label>'
+    +'<div class="row"><label>Overenskomst<select data-j="agr"><option value="reklame"'+(!fik?' selected':'')+'>Reklamefilm</option><option value="fiktion"'+(fik?' selected':'')+'>Fiktion</option></select></label>'
+    +'<label>Grundløn pr. dag (kr)<input type="number" inputmode="decimal" data-j="rate" value="'+esc(job.rate)+'"></label></div>';
+  if(!fik)h+='<label>Løngruppe<select data-j="grp"><option value="1-4"'+(job.grp!=='5'?' selected':'')+'>Løngruppe 1–4</option><option value="5"'+(job.grp==='5'?' selected':'')+'>Løngruppe 5 (runner/trainee)</option></select></label>';
+  else h+='<label class="chk"><input type="checkbox" data-j="single"'+(job.single?' checked':'')+'>Enkeltdagsengagement (under en uge): +10 %</label><div class="mut">Dagsløn = ugeløn ÷ 5. Timeløn = dagsløn ÷ 8.</div>';
+  h+='</div>';}
+  var ns=job.days.filter(function(d){return sel[d.id];}).length;
+  h+='<div class="bar"><button class="l" data-act="seltoggle">'+(ns>0&&ns===job.days.length?'Fravælg alle':'Vælg alle')+'</button><span style="display:flex;gap:8px"><button data-act="copy"'+(ns?'':' disabled')+'>'+(copied?'Kopieret':'Kopiér'+(ns?' ('+ns+')':''))+'</button><button class="p" data-act="newday">+ Ny dag</button></span></div>'
+    +(outText?'<textarea id="out" readonly rows="10" style="width:100%;margin-top:10px;font:13px/1.4 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px">'+esc(outText)+'</textarea><div class="mut" id="outmsg">'+esc(outMsg)+'</div>':(outMsg?'<div class="mut" style="margin-top:8px">'+esc(outMsg)+'</div>':''));
+  job.days.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||(b.start||'').localeCompare(a.start||'');}).forEach(function(d){h+=dayView(job,d);});
+  if(!delOpen)h+='<button class="l" data-act="delopen" style="color:var(--mut);font-size:13px">Slet job…</button>';
+  else h+='<div class="card"><div class="mut">Skriv SLET for at slette jobbet og alle dets dage. Det kan ikke fortrydes.</div><input id="delconf" placeholder="SLET" autocomplete="off" autocapitalize="characters"><div class="row" style="margin-top:10px"><button data-act="delcancel">Annuller</button><button class="d" id="delbtn" data-act="deljob" disabled>Slet job</button></div></div>';
+  return h;
+}
+function render(){
+  var job=view&&S.jobs.filter(function(j){return j.id===view;})[0];
+  if(view&&!job)view=null;
+  var ti=document.getElementById('title');
+  if(job){ti.innerHTML=esc(job.name||'Job')+'<span style="font-size:20px;color:var(--mut);margin-left:8px;font-weight:600">'+(jobEdit?'⌃':'⌄')+'</span>';ti.dataset.act='jobedit';ti.style.cursor='pointer';}
+  else{ti.textContent='CallTime';delete ti.dataset.act;ti.style.cursor='';}
+  document.getElementById('eyebrow').textContent=job?AG[job.agr]:new Date().toLocaleDateString('da-DK',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('back').innerHTML=job?'<button class="l" data-act="back">‹ Alle jobs</button>':'';
+  if(auth&&user===null){document.getElementById('back').innerHTML='';document.getElementById('app').innerHTML=loginView();drawAlert();return;}
+  document.getElementById('app').innerHTML=job?jobView(job):listView();
+  drawAlert();
+}
+
+/* ---------- handlinger ---------- */
+function curJob(){return S.jobs.filter(function(j){return j.id===view;})[0];}
+function dayById(id){var j=curJob();return j&&j.days.filter(function(d){return d.id===id;})[0];}
+document.addEventListener('click',function(ev){
+  var el=ev.target.closest('[data-act]');if(!el)return;
+  var a=el.dataset.act,id=el.dataset.id,j=curJob();
+  if(a==='newjob')mutate(function(){var n={id:uid(),name:'',agr:'reklame',grp:'1-4',single:false,rate:6000,days:[]};S.jobs.unshift(n);view=n.id;jobEdit=true;});
+  else if(a==='jobedit'){jobEdit=!jobEdit;render();}
+  else if(a==='login'||a==='signup'){
+    var em=(document.getElementById('le')||{}).value||'',pw=(document.getElementById('lp')||{}).value||'';
+    authErr='';authMsg='';
+    (a==='login'?auth.signInWithEmailAndPassword(em.trim(),pw):auth.createUserWithEmailAndPassword(em.trim(),pw)).catch(function(e){authErr=authError(e);render();var x=document.getElementById('le');if(x)x.value=em;});
+  }
+  else if(a==='resetpw'){var em2=((document.getElementById('le')||{}).value||'').trim();if(!em2){authErr='Skriv din e-mail først.';render();return;}auth.sendPasswordResetEmail(em2).then(function(){authErr='';authMsg='Vi har sendt en mail, så du kan vælge en ny adgangskode.';render();},function(e){authErr=authError(e);render();});}
+  else if(a==='logout'){auth.signOut();}
+  else if(a==='impopen'){impOpen=true;impMsg='';render();}
+  else if(a==='impclose'){impOpen=false;impMsg='';render();}
+  else if(a==='doimport'){
+    var raw=(document.getElementById('imp')||{}).value||'',o;
+    try{o=JSON.parse(raw.trim());}catch(e){impMsg='Teksten kunne ikke læses. Kopiér den igen.';render();return;}
+    if(!o||!o.jobs||!o.jobs.length){impMsg='Der var ingen jobs i teksten.';render();return;}
+    var have={},n=0;S.jobs.forEach(function(x){have[x.id]=1;});
+    mutate(function(){o.jobs.forEach(function(x){if(x&&x.id&&!have[x.id]&&x.days){S.jobs.push(x);n++;}});});
+    impMsg=n?(n+(n===1?' job':' jobs')+' importeret.'):'Alle jobs fandtes allerede.';render();
+  }
+  else if(a==='badgeon'){try{Notification.requestPermission().then(function(){render();});}catch(e){}}
+  else if(a==='export'){
+    var txt=JSON.stringify(S),ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';document.body.appendChild(ta);ta.focus();ta.select();try{ta.setSelectionRange(0,txt.length);}catch(e){}
+    var ok=false;try{ok=document.execCommand('copy');}catch(e){}document.body.removeChild(ta);
+    if(ok){expMsg='Kopieret – indsæt i den nye app';render();setTimeout(function(){expMsg='';render();},4000);}
+    else{expShow=true;render();var x=document.getElementById('exp');if(x){x.focus();x.select();}}
+  }
+  else if(a==='openjob'){view=id;jobEdit=false;openDay=null;armed=null;delOpen=false;sel={};outText=null;outMsg='';render();}
+  else if(a==='back'){view=null;jobEdit=false;armed=null;delOpen=false;render();}
+  else if(a==='newday')mutate(function(){
+    var nw=new Date(),q=Math.min(1425,Math.round((nw.getHours()*60+nw.getMinutes())/15)*15);var n={id:uid(),date:ld(nw),start:hm(q),end:'',pause:j.agr==='fiktion'?30:0,wk:0,unv:'v',gear:[]};
+    var dw=new Date(n.date+'T12:00:00').getDay();if(dw===0||dw===6)n.wk=75;
+    j.days.push(n);openDay=n.id;});
+  else if(a==='endnow')mutate(function(){var d=dayById(id);if(!d)return;var nw=new Date(),q=Math.min(1425,Math.round((nw.getHours()*60+nw.getMinutes())/15)*15),s=d.start?mins(d.start):-1;if(q===s)q=Math.min(1425,s+15);d.end=hm(q);});
+  else if(a==='gotoopen'){view=el.dataset.job;openDay=id;armed=null;sel={};outText=null;outMsg='';render();}
+  else if(a==='openday'){openDay=openDay===id?null:id;armed=null;render();}
+  else if(a==='seltoggle'){var allOn=j.days.length>0&&j.days.every(function(d){return sel[d.id];});sel={};if(!allOn)j.days.forEach(function(d){sel[d.id]=true;});outText=null;outMsg='';render();}
+  else if(a==='selnone'){sel={};outText=null;outMsg='';render();}
+  else if(a==='copy'){
+    var chosen=j.days.filter(function(d){return sel[d.id]&&d.end;});
+    if(!chosen.length){outText=null;outMsg='Vælg mindst én dag først.';render();return;}
+    outText=null;outMsg='';copyNow(buildText(j,chosen));
+  }
+  else if(a==='deleq')mutate(function(){dayById(id).eq.splice(+el.dataset.i,1);});
+  else if(a==='delday'){if(armed==='d'+id)mutate(function(){j.days=j.days.filter(function(d){return d.id!==id;});openDay=null;armed=null;});else{armed='d'+id;render();}}
+  else if(a==='delopen'){delOpen=true;render();var ci=document.getElementById('delconf');if(ci)ci.focus();}
+  else if(a==='delcancel'){delOpen=false;render();}
+  else if(a==='deljob'){var cf=document.getElementById('delconf');if(cf&&cf.value.trim().toUpperCase()==='SLET')mutate(function(){S.jobs=S.jobs.filter(function(x){return x.id!==view;});view=null;armed=null;delOpen=false;});}
+});
+document.addEventListener('change',function(ev){
+  var t=ev.target,j=curJob(),v=t.type==='checkbox'?t.checked:t.value,d;
+  if(t.dataset.j&&j)mutate(function(){
+    var f=t.dataset.j,old=j.agr;
+    j[f]=(f==='rate')?(parseFloat(v)||0):v;
+    if(f==='agr'&&v!==old){
+      var od=old==='fiktion'?30:0,nd=v==='fiktion'?30:0;
+      j.days.forEach(function(x){if((+x.pause||0)===od)x.pause=nd;});
+    }
+  });
+  else if(t.dataset.d&&j&&(t.type==='time'||t.type==='date')&&document.activeElement===t){d=dayById(t.dataset.id);if(!d)return;
+    d[t.dataset.d]=v;
+    if(t.dataset.d==='date'&&v){var dw2=new Date(v+'T12:00:00').getDay();d.wk=(dw2===0||dw2===6)?75:0;}
+    S.updated=Date.now();saveLocal();clearTimeout(timer);timer=setTimeout(push,500);pendingRender=true;
+  }
+  else if(t.dataset.d&&j){d=dayById(t.dataset.id);if(d)mutate(function(){
+    var f=t.dataset.d;d[f]=(f==='pause'||f==='tr')?(parseFloat(v)||0):v;
+    if(f==='date'&&v){var dw=new Date(v+'T12:00:00').getDay();d.wk=(dw===0||dw===6)?75:0;}
+  });}
+  else if(t.dataset.t&&j){d=dayById(t.dataset.id);if(d){
+    var box=t.parentNode,hs=box.querySelector('[data-t=h]').value,ms=box.querySelector('[data-t=m]').value;
+    if(!hs&&!ms)return;
+    mutate(function(){d[t.dataset.f]=(hs||'00')+':'+(ms||'00');});
+  }}
+  else if(t.dataset.sel){sel[t.dataset.sel]=t.checked;outText=null;outMsg='';render();}
+  else if(t.dataset.g&&j){d=dayById(t.dataset.id);if(d)mutate(function(){d.gear=d.gear||[];var gi=d.gear.indexOf(t.dataset.g);if(t.checked&&gi<0)d.gear.push(t.dataset.g);if(!t.checked&&gi>=0)d.gear.splice(gi,1);});}
+  else if(t.dataset.eq&&j){d=dayById(t.dataset.id);if(d)mutate(function(){d.eq[+t.dataset.i][t.dataset.eq]=v;});}
+});
+
+/* tidsvælger: tegn først siden igen når feltet forlades, så iOS-hjulet ikke lukker */
+var pendingRender=false;
+document.addEventListener('focusout',function(){if(pendingRender){pendingRender=false;setTimeout(render,0);}});
+
+/* gem mens der skrives (iOS udløser ikke altid "change" før man trykker et andet sted) */
+document.addEventListener('input',function(ev){
+  if(ev.target.id==='delconf'){var bt=document.getElementById('delbtn');if(bt)bt.disabled=ev.target.value.trim().toUpperCase()!=='SLET';return;}
+  var t=ev.target,j=curJob();
+  if(!j||t.type==='checkbox'||t.tagName==='SELECT')return;
+  var v=t.value,d,f;
+  if(t.dataset.j){f=t.dataset.j;j[f]=(f==='rate')?(parseFloat(v)||0):v;}
+  else if(t.dataset.d==='note'||t.dataset.d==='tr'){
+    d=dayById(t.dataset.id);if(!d)return;
+    d[t.dataset.d]=(t.dataset.d==='tr')?(parseFloat(v)||0):v;
+  }else return;
+  S.updated=Date.now();saveLocal();clearTimeout(timer);timer=setTimeout(push,500);
+});
+
+loadLocal();render();initSync();
+if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
+</script>
+</body>
+</html>

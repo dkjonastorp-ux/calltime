@@ -1,0 +1,12 @@
+# Altid HTTPS (kræves for hjemmeskærms-app og offline)
+RewriteEngine On
+RewriteCond %{HTTPS} !=on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Rigtig filtype til app-manifestet
+AddType application/manifest+json .webmanifest
+
+# Hent altid nyeste version af appens filer
+<FilesMatch "\.(html|js|webmanifest)$">
+  Header set Cache-Control "no-cache"
+</FilesMatch>
