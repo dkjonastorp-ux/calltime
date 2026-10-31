@@ -22,3 +22,6 @@ Simpel tidsregistrerings-app for en filmfotograf (Steadicam/kamera): jobs → da
 ## Konventioner
 - Test før push: `node --check` på scriptet og et Playwright-skærmbillede i 390 px bredde, mørk tilstand.
 - Hold det simpelt og iPhone-venligt; render() tegner hele `#app` om, så undgå re-render mens tids-/datofelter har fokus.
+
+## Forhåndsvisning til kommentarer
+Brugeren kan lide at kommentere direkte på siden i en Claude-artifact. Byg en forhåndsvisning af `index.html` ved at fjerne Firebase-scripts, manifest/ikon-links og service worker-registreringen, og fyld `S` med eksempeldata, når localStorage er tom. Publicér som artifact, saml kommentarerne, og læg så ændringerne i `index.html` og push.
