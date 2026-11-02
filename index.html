@@ -121,6 +121,10 @@ html.live body{background:linear-gradient(180deg,rgba(255,69,58,.24),rgba(255,69
 .bar button.l{font-size:15px}
 button[disabled]{opacity:.4}
 #out{margin-bottom:10px}
+.wk{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:18px 2px 8px}
+.wk strong{font-size:17px}
+.wkb{display:flex;align-items:center;gap:12px}
+.wkb button.l{font-size:14px}
 </style>
 </head>
 <body>
@@ -299,7 +303,7 @@ function buildText(job,days){
   return out.join('\n').replace(/^\n+/,'');
 }
 function copyNow(text,kind){
-  var done=function(){if(kind==='t')copiedT=true;else copied=true;render();setTimeout(function(){copied=false;copiedT=false;render();},2000);};
+  var done=function(){if(kind)copiedT=kind;else copied=true;render();setTimeout(function(){copied=false;copiedT=false;render();},2000);};
   var fail=function(){outText=text;outMsg='Markér og kopiér teksten.';render();};
   var ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:fixed;opacity:0;top:0;left:0';
   document.body.appendChild(ta);ta.focus();ta.select();try{ta.setSelectionRange(0,text.length);}catch(e){}
@@ -332,6 +336,18 @@ function tsel(f,id,val){
   var ms=[];for(i=0;i<60;i+=5)ms.push(p2(i));if(mm&&ms.indexOf(mm)<0){ms.push(mm);ms.sort();}
   ms.forEach(function(o){h+='<option value="'+o+'"'+(o===mm?' selected':'')+'>'+o+'</option>';});
   return h+'</select></div>';
+}
+function isoWeek(ds){
+  var d=new Date(ds+'T12:00:00'),wd=(d.getDay()+6)%7,mon=isoAdd(ds,-wd),th=new Date(isoAdd(mon,3)+'T12:00:00'),y=th.getFullYear(),j1=new Date(y+'-01-04T12:00:00');
+  var w=1+Math.round(((th-j1)/864e5-3+((j1.getDay()+6)%7))/7);
+  return {w:w,y:y,mon:mon,sun:isoAdd(mon,6)};
+}
+function weekDays(job,mon){var sun=isoAdd(mon,6);return job.days.filter(function(d){return d.date&&d.date>=mon&&d.date<=sun;});}
+function weekHead(job,w){
+  var ds=weekDays(job,w.mon),all=ds.length&&ds.every(function(d){return sel[d.id];});
+  var a=new Date(w.mon+'T12:00:00'),b=new Date(w.sun+'T12:00:00'),mo=function(x){return x.toLocaleDateString('da-DK',{month:'short'}).replace('.','');};
+  var span=a.getDate()+'.'+(a.getMonth()===b.getMonth()?'':' '+mo(a))+'–'+b.getDate()+'. '+mo(b);
+  return '<div class="wk"><div><strong>Uge '+w.w+'</strong> <span class="mut">'+span+'</span></div><div class="wkb"><button class="l" data-act="selweek" data-w="'+w.mon+'">'+(all?'Fravælg':'Vælg')+'</button><button data-act="copyweek" data-w="'+w.mon+'">'+(copiedT==='w'+w.mon?'Kopieret':'Kopiér tider')+'</button></div></div>';
 }
 function listView(){
   var h='<div class="card"><button class="p" data-act="newjob" style="width:100%">+ Nyt job</button></div>';
@@ -383,9 +399,14 @@ function jobView(job){
   h+='</div>';}
   var ns=job.days.filter(function(d){return sel[d.id];}).length;
   h+='<div class="bar"><button class="l" data-act="seltoggle">'+(ns>0&&ns===job.days.length?'Fravælg alle':'Vælg alle')+'</button><span style="display:flex;gap:8px"><button data-act="copy"'+(ns?'':' disabled')+'>'+(copied?'Kopieret':'Kopiér'+(ns?' ('+ns+')':''))+'</button><button class="p" data-act="newday">+ Ny dag</button></span></div>'
-    +(ns?'<div style="margin:-6px 0 14px"><button class="l" data-act="copytimes" style="font-size:14px">'+(copiedT?'Tider kopieret – sæt ind i første startcelle':'Kopiér start- og sluttider til ugeseddel')+'</button></div>':'')
+    +(ns?'<div style="margin:-6px 0 14px"><button class="l" data-act="copytimes" style="font-size:14px">'+(copiedT==='t'?'Tider kopieret – sæt ind i første startcelle':'Kopiér start- og sluttider til ugeseddel')+'</button></div>':'')
     +(outText?'<textarea id="out" readonly rows="10" style="width:100%;margin-top:10px;font:13px/1.4 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px">'+esc(outText)+'</textarea><div class="mut" id="outmsg">'+esc(outMsg)+'</div>':(outMsg?'<div class="mut" style="margin-top:8px">'+esc(outMsg)+'</div>':''));
-  job.days.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||(b.start||'').localeCompare(a.start||'');}).forEach(function(d){h+=dayView(job,d);});
+  var lastWk=null;
+  job.days.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||(b.start||'').localeCompare(a.start||'');}).forEach(function(d){
+    var w=d.date?isoWeek(d.date):null,key=w?w.mon:'';
+    if(key!==lastWk){lastWk=key;if(w)h+=weekHead(job,w);}
+    h+=dayView(job,d);
+  });
   if(!delOpen)h+='<button class="l" data-act="delopen" style="color:var(--mut);font-size:13px">Slet job…</button>';
   else h+='<div class="card"><div class="mut">Skriv SLET for at slette jobbet og alle dets dage. Det kan ikke fortrydes.</div><input id="delconf" placeholder="SLET" autocomplete="off" autocapitalize="characters"><div class="row" style="margin-top:10px"><button data-act="delcancel">Annuller</button><button class="d" id="delbtn" data-act="deljob" disabled>Slet job</button></div></div>';
   return h;
@@ -450,6 +471,13 @@ document.addEventListener('click',function(ev){
     var chosen=j.days.filter(function(d){return sel[d.id]&&d.end;});
     if(!chosen.length){outText=null;outMsg='Vælg mindst én dag først.';render();return;}
     outText=null;outMsg='';copyNow(buildText(j,chosen));
+  }
+  else if(a==='selweek'){var wd=weekDays(j,el.dataset.w),on=wd.every(function(d){return sel[d.id];});wd.forEach(function(d){if(on)delete sel[d.id];else sel[d.id]=true;});outText=null;outMsg='';render();}
+  else if(a==='copyweek'){
+    var mon=el.dataset.w,wds=weekDays(j,mon);if(!wds.length)return;
+    var lastD=wds.map(function(d){return d.date;}).sort().pop(),rr=[],dd=mon;
+    while(dd<=lastD){(function(x){var sm=wds.filter(function(d){return d.date===x;}).sort(function(p,q){return (p.start||'').localeCompare(q.start||'');});rr.push(sm.length?(sm[0].start||'')+'\t'+(sm[sm.length-1].end||''):'\t');})(dd);dd=isoAdd(dd,1);}
+    outText=null;outMsg='';copyNow(rr.join('\n'),'w'+mon);
   }
   else if(a==='copytimes'){
     var ch=j.days.filter(function(d){return sel[d.id]&&d.date;}).sort(function(x,y){return (x.date+x.start).localeCompare(y.date+y.start);});
