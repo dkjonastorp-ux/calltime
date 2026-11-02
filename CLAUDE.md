@@ -5,7 +5,8 @@ Simpel tidsregistrerings-app for en filmfotograf (Steadicam/kamera): jobs → da
 ## Drift
 - Hostes på GitHub Pages fra `main`, rodmappen: https://dkjonastorp-ux.github.io/calltime
 - En push til `main` er en udrulning. Appen henter selv nyeste version (service worker er network-first).
-- Brugeren arbejder ikke selv med koden; Claude laver ændringer, committer og pusher.
+- Brugeren arbejder ikke selv med koden; Claude laver ændringer og committer.
+- **Arbejdsgang (brugerens regel):** Lav altid ændringer i forhåndsvisningen (artifact) først. Push til GitHub først, når brugeren skriver "go".
 
 ## Filer
 - `index.html` – hele appen (HTML, CSS og ES5-JavaScript i én fil). `calc(job,d)` er lønberegningen, `buildText` er teksten der kopieres til Dinero.
@@ -24,4 +25,4 @@ Simpel tidsregistrerings-app for en filmfotograf (Steadicam/kamera): jobs → da
 - Hold det simpelt og iPhone-venligt; render() tegner hele `#app` om, så undgå re-render mens tids-/datofelter har fokus.
 
 ## Forhåndsvisning til kommentarer
-Brugeren kan lide at kommentere direkte på siden i en Claude-artifact. Byg en forhåndsvisning af `index.html` ved at fjerne Firebase-scripts, manifest/ikon-links og service worker-registreringen, og fyld `S` med eksempeldata, når localStorage er tom. Publicér som artifact, saml kommentarerne, og læg så ændringerne i `index.html` og push.
+Byg forhåndsvisningen med `python3 tools/build-preview.py index.html calltime-preview.html` (fjerner Firebase, manifest og service worker og indsætter eksempeldata). Publicér den som artifact, lad brugeren kommentere, og push først ved "go".
