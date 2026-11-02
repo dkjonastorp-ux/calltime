@@ -347,7 +347,7 @@ function weekHead(job,w){
   var ds=weekDays(job,w.mon),all=ds.length&&ds.every(function(d){return sel[d.id];});
   var a=new Date(w.mon+'T12:00:00'),b=new Date(w.sun+'T12:00:00'),mo=function(x){return x.toLocaleDateString('da-DK',{month:'short'}).replace('.','');};
   var span=a.getDate()+'.'+(a.getMonth()===b.getMonth()?'':' '+mo(a))+'–'+b.getDate()+'. '+mo(b);
-  return '<div class="wk"><div><strong>Uge '+w.w+'</strong> <span class="mut">'+span+'</span></div><div class="wkb"><button class="l" data-act="selweek" data-w="'+w.mon+'">'+(all?'Fravælg':'Vælg')+'</button><button data-act="copyweek" data-w="'+w.mon+'">'+(copiedT==='w'+w.mon?'Kopieret':'Kopiér tider')+'</button></div></div>';
+  return '<div class="wk"><div><strong>Uge '+w.w+'</strong> <span class="mut">'+span+'</span></div><div class="wkb"><button class="l" data-act="selweek" data-w="'+w.mon+'">'+(all?'Fravælg':'Vælg')+'</button><button data-act="copyweek" data-w="'+w.mon+'">'+(copiedT==='w'+w.mon?'Kopieret':'Til ugeseddel')+'</button></div></div>';
 }
 function listView(){
   var h='<div class="card"><button class="p" data-act="newjob" style="width:100%">+ Nyt job</button></div>';
