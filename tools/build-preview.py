@@ -28,6 +28,6 @@ function demoData(){
 '''
 b="loadLocal();render();initSync();"
 assert b in s
-s=s.replace(b, demo+"loadLocal();if(!S.jobs.length)S=demoData();if(!S.jobs.some(function(x){return x.id==='dtest';}))S.jobs.unshift(testJob());render();setBadge('Forhåndsvisning – eksempeldata');")
+s=s.replace(b, demo+"loadLocal();S.jobs=S.jobs.filter(function(x){return x.id!=='dj1'&&x.id!=='dj2';});if(!S.jobs.some(function(x){return x.id==='dtest';}))S.jobs.unshift(testJob());render();setBadge('Forhåndsvisning – eksempeldata');")
 s=s.replace('<main>','<main>\n<div style="font-size:12px;color:var(--mut);margin-bottom:10px">Forhåndsvisning med eksempeldata. Kommentér direkte på siden; ændringer kommer først ud i den rigtige app, når Claude lægger dem på GitHub.</div>',1)
 open(sys.argv[2],'w').write(s)
