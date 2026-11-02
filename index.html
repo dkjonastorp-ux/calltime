@@ -399,7 +399,6 @@ function jobView(job){
   h+='</div>';}
   var ns=job.days.filter(function(d){return sel[d.id];}).length;
   h+='<div class="bar"><button class="l" data-act="seltoggle">'+(ns>0&&ns===job.days.length?'Fravælg alle':'Vælg alle')+'</button><span style="display:flex;gap:8px"><button data-act="copy"'+(ns?'':' disabled')+'>'+(copied?'Kopieret':'Kopiér'+(ns?' ('+ns+')':''))+'</button><button class="p" data-act="newday">+ Ny dag</button></span></div>'
-    +(ns?'<div style="margin:-6px 0 14px"><button class="l" data-act="copytimes" style="font-size:14px">'+(copiedT==='t'?'Tider kopieret – sæt ind i første startcelle':'Kopiér start- og sluttider til ugeseddel')+'</button></div>':'')
     +(outText?'<textarea id="out" readonly rows="10" style="width:100%;margin-top:10px;font:13px/1.4 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px">'+esc(outText)+'</textarea><div class="mut" id="outmsg">'+esc(outMsg)+'</div>':(outMsg?'<div class="mut" style="margin-top:8px">'+esc(outMsg)+'</div>':''));
   var lastWk=null;
   job.days.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||(b.start||'').localeCompare(a.start||'');}).forEach(function(d){
@@ -478,18 +477,6 @@ document.addEventListener('click',function(ev){
     var lastD=wds.map(function(d){return d.date;}).sort().pop(),rr=[],dd=mon;
     while(dd<=lastD){(function(x){var sm=wds.filter(function(d){return d.date===x;}).sort(function(p,q){return (p.start||'').localeCompare(q.start||'');});rr.push(sm.length?(sm[0].start||'')+'\t'+(sm[sm.length-1].end||''):'\t');})(dd);dd=isoAdd(dd,1);}
     outText=null;outMsg='';copyNow(rr.join('\n'),'w'+mon);
-  }
-  else if(a==='copytimes'){
-    var ch=j.days.filter(function(d){return sel[d.id]&&d.date;}).sort(function(x,y){return (x.date+x.start).localeCompare(y.date+y.start);});
-    if(!ch.length)return;
-    var rows=[],dt=ch[0].date,last=ch[ch.length-1].date,i=0,guard=0;
-    while(dt<=last&&guard++<62){
-      var same=ch.filter(function(d){return d.date===dt;});
-      if(same.length)same.forEach(function(d){rows.push((d.start||'')+'\t'+(d.end||''));});
-      else rows.push('\t');
-      dt=isoAdd(dt,1);
-    }
-    outText=null;outMsg='';copyNow(rows.join('\n'),'t');
   }
   else if(a==='deleq')mutate(function(){dayById(id).eq.splice(+el.dataset.i,1);});
   else if(a==='delday'){if(armed==='d'+id)mutate(function(){j.days=j.days.filter(function(d){return d.id!==id;});openDay=null;armed=null;});else{armed='d'+id;render();}}
