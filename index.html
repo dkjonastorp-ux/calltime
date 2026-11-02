@@ -398,7 +398,7 @@ function jobView(job){
   else h+='<label class="chk"><input type="checkbox" data-j="single"'+(job.single?' checked':'')+'>Enkeltdagsengagement (under en uge): +10 %</label><div class="mut">Dagsløn = ugeløn ÷ 5. Timeløn = dagsløn ÷ 8.</div>';
   h+='</div>';}
   var ns=job.days.filter(function(d){return sel[d.id];}).length;
-  h+='<div class="bar"><button class="l" data-act="seltoggle">'+(ns>0&&ns===job.days.length?'Fravælg alle':'Vælg alle')+'</button><span style="display:flex;gap:8px"><button data-act="copy"'+(ns?'':' disabled')+'>'+(copied?'Kopieret':'Kopiér'+(ns?' ('+ns+')':''))+'</button><button class="p" data-act="newday">+ Ny dag</button></span></div>'
+  h+='<div class="bar"><button class="l" data-act="seltoggle">'+(ns>0&&ns===job.days.length?'Fravælg alle':'Vælg alle')+'</button><span style="display:flex;gap:8px"><button data-act="copy"'+(ns?'':' disabled')+'>'+(copied?'Kopieret':'Til Dinero'+(ns?' ('+ns+')':''))+'</button><button class="p" data-act="newday">+ Ny dag</button></span></div>'
     +(outText?'<textarea id="out" readonly rows="10" style="width:100%;margin-top:10px;font:13px/1.4 ui-monospace,Menlo,monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px">'+esc(outText)+'</textarea><div class="mut" id="outmsg">'+esc(outMsg)+'</div>':(outMsg?'<div class="mut" style="margin-top:8px">'+esc(outMsg)+'</div>':''));
   var lastWk=null;
   job.days.slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'')||(b.start||'').localeCompare(a.start||'');}).forEach(function(d){
